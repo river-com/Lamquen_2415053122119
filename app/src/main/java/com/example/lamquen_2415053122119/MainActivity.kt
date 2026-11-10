@@ -1,72 +1,79 @@
 package com.example.lamquen_2415053122119
 
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.navigation.findNavController
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import android.view.Menu
-import android.view.MenuItem
-import com.example.lamquen_2415053122119.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var binding: ActivityMainBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
+        setContentView(R.layout.activity_main)
+        // Tránh giao diện bị che bởi thanh trạng thái và thanh điều hướng.
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { view, insets ->
+            val systemBars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars()
+            )
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+            view.setPadding(
+                systemBars.left,
+                systemBars.top,
+                systemBars.right,
+                systemBars.bottom
+            )
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        setSupportActionBar(binding.toolbar)
+        val edtTen = findViewById<EditText>(R.id.edtTen)
+        val edtSoLuong = findViewById<EditText>(R.id.edtSoLuong)
+        val btnKiemTra = findViewById<Button>(R.id.btnKiemTra)
+        val btnXoa = findViewById<Button>(R.id.btnXoa)
+        val tvKetQua = findViewById<TextView>(R.id.tvKetQua)
 
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
-        val navController = navHostFragment.navController
+        btnKiemTra.setOnClickListener {
+            // Xóa lỗi và kết quả cũ trước mỗi lần kiểm tra.
+            edtTen.error = null
+            edtSoLuong.error = null
+            tvKetQua.text = ""
 
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
+            val ten = Try20Logic.tenHopLe(edtTen.text.toString())
+            val soLuong = Try20Logic.docSoLuong(
+                edtSoLuong.text.toString()
+            )
 
-        binding.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null)
-                .setAnchorView(R.id.fab).show()
+            if (ten == null) {
+                edtTen.error = "Vui lòng nhập tên"
+            }
+
+            if (soLuong == null) {
+                edtSoLuong.error = "Số lượng phải là số nguyên từ 1 đến 9"
+            }
+
+            if (ten != null && soLuong != null) {
+                tvKetQua.text = Try20Logic.loiChao(ten, soLuong)
+            } else if (ten == null) {
+                edtTen.requestFocus()
+            } else {
+                edtSoLuong.requestFocus()
+            }
         }
-    }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
+        btnXoa.setOnClickListener {
+            edtTen.text.clear()
+            edtSoLuong.text.clear()
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+            edtTen.error = null
+            edtSoLuong.error = null
+            tvKetQua.text = ""
+
+            edtTen.requestFocus()
         }
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
     }
 }
